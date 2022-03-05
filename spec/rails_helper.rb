@@ -5,6 +5,25 @@ require File.expand_path('../config/environment', __dir__)
 # Prevent database truncation if the environment is production
 abort("The Rails environment is running in production mode!") if Rails.env.production?
 require 'rspec/rails'
+]require 'vcr'
+require 'webmock'
+VCR.configure do |config|
+  config.cassette_library_dir = "spec/vcr_cassettes"
+  config.hook_into :webmock
+  config.filter_sensitive_data('<GoogleKey>') { ENV['GoogleKey'] }
+  config.filter_sensitive_data('<OpenWeatherKey>') { ENV['OpenWeatherKey'] }
+  config.filter_sensitive_data('<UnsplashKey>') { ENV['UnsplashKey'] }
+  config.configure_rspec_metadata!
+  config.allow_http_connections_when_no_cassette = true
+end
+
+Capybara.register_driver :selenium do |app|
+  options = Selenium::WebDriver::Chrome::Options.new(args: %w[no-sandbox headless disable-gpu])
+  Capybara::Selenium::Driver.new(app, browser: :chrome, options: options)
+end
+
+Capybara.javascript_driver = :selenium_chrome_headless
+
 
 SimpleCov.start 'rails'
  Shoulda::Matchers.configure do |config|
